@@ -303,6 +303,7 @@
       dragState.startY = e.clientY;
       dragState.scrollStart = this.scrollTop;
       dragState.column = this;
+      this.style.scrollSnapType = 'none';
     }
 
     function handleTouchStart(e) {
@@ -311,6 +312,7 @@
       dragState.startY = e.touches[0].clientY;
       dragState.scrollStart = this.scrollTop;
       dragState.column = this;
+      this.style.scrollSnapType = 'none';
     }
 
     function handleMouseMove(e) {
@@ -335,6 +337,7 @@
       dragState.isDragging = false;
       
       if (dragState.column) {
+        dragState.column.style.scrollSnapType = 'y mandatory';
         const snapped = Math.round(dragState.column.scrollTop / CONFIG.ITEM_HEIGHT) * CONFIG.ITEM_HEIGHT;
         dragState.column.scrollTo({ top: snapped, behavior: 'smooth' });
       }
