@@ -2,276 +2,426 @@
 <html lang="ja">
 
 <head>
-
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Hex Color Picker</title>
 
   <style>
+    :root {
+      --item-height: 40px;
+      --spacer-height: 170px;
+      --border-radius: 4px;
+      --shadow-soft: 0 1px 6px rgba(22, 22, 22, 0.15);
+      --shadow-strong: 0 2px 8px rgba(0, 0, 0, 0.15);
+      --transition-speed: 0.3s;
+    }
+
     * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
+
     body, html {
-    width: 100%;
-    height: 100%;
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f0f0f0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #000000;
+      overflow: hidden;
+      transition: background-color 0.3s ease;
     }
+
     .container {
-    position: relative;
-    width: 400px;
-    height: 500px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    user-select: none;
+      position: relative;
+      width: 400px;
+      height: 500px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: var(--shadow-strong);
+      overflow: hidden;
+      user-select: none;
     }
+
     .display {
-    display: inline-flex;
-    align-items: center;
-    position: absolute;
-    top: 31px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 2rem;
-    font-weight: bold;
-    color: #333;
-    z-index: 5;
-    cursor: pointer;
-    user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      position: absolute;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2rem;
+      font-weight: bold;
+      color: #333;
+      z-index: 5;
+      cursor: pointer;
+      padding: 0;
+      border-radius: var(--border-radius);
+      transition: all var(--transition-speed) ease;
+      background-color: transparent;
+      border: none;
+      outline: none;
     }
-    #color-box {
-    display: inline-flex;
-    align-items: center;
-    position: absolute;
-    top: 17px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20%;
-    height: 10px;
-    box-shadow: 0 1px 6px rgba(22, 22, 22, 0.15);
-    border-radius: 4px;
-    background-color: #222; /* начальный цвет */
+
+    .display:hover {
+      opacity: 0.7;
     }
+
+    .display:active {
+      transform: translateX(-50%) scale(0.95);
+    }
+
+    .display.copied {
+      opacity: 0.5;
+    }
+
+    .display:focus-visible {
+      outline: 2px solid #333;
+      outline-offset: 4px;
+    }
+
     .columns {
-    position: absolute;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    width: 90%;
-    height: 380px;
-    z-index: 1;
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      width: 90%;
+      height: 380px;
+      z-index: 1;
     }
+
     .column {
-    flex: 1;
-    margin: 0 5px;
-    background-color: #222;
-    border-radius: 4px;
-    overflow-y: scroll;
-    scrollbar-width: none; /* for Firefox */
-    position: relative;
-    scroll-snap-type: y mandatory;
-    cursor: grab; /* меняем курсор */
+      flex: 1;
+      margin: 0 5px;
+      background-color: #222;
+      border-radius: var(--border-radius);
+      overflow-y: scroll;
+      scrollbar-width: none;
+      position: relative;
+      scroll-snap-type: y mandatory;
+      cursor: grab;
+      touch-action: pan-y;
     }
+
     .column:active {
-    cursor: grabbing;
+      cursor: grabbing;
     }
+
     .column::-webkit-scrollbar {
-    width: 0;
-    height: 0;
+      width: 0;
+      height: 0;
     }
+
     .column .spacer {
-    height: 170px; /* центрует 40px-высокую ячейку в 380px-контейнере */
+      height: var(--spacer-height);
     }
+
     .column-item {
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    color: #fff;
-    font-size: 1rem;
-    scroll-snap-align: center;
-    user-select: none;
+      height: var(--item-height);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      color: #fff;
+      font-size: 1rem;
+      scroll-snap-align: center;
+      user-select: none;
     }
+
     .column-item.selected {
-    font-size: 1.2rem;
+      font-size: 1.2rem;
     }
-    /* Рамка вокруг центральной выбранной ячейки */
+
     .selector-frame {
-    position: absolute;
-    top: calc(50% - 20px);
-    left: 0;
-    width: 100%;
-    height: 40px;
-    border: 3px solid #fff;
-    background-color: rgba(255, 255, 255, 0.1);
-    pointer-events: none;
-    box-sizing: border-box;
-    z-index: 2;
+      position: absolute;
+      top: calc(50% - calc(var(--item-height) / 2));
+      left: 0;
+      width: 100%;
+      height: var(--item-height);
+      border: 3px solid #fff;
+      background-color: rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+      box-sizing: border-box;
+      z-index: 2;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: all var(--transition-speed) ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        width: 90vw;
+        height: 80vh;
+      }
+
+      .display {
+        font-size: 1.5rem;
+      }
+
+      .columns {
+        height: calc(80vh - 120px);
+      }
     }
   </style>
-
 </head>
 
 <body>
-
   <div class="container">
-    <!-- Квадратик с цветом -->
-    <div id="color-box"></div>
-    <!-- Центральный дисплей: отображает собранный hex-код -->
-    <div class="display" id="color-display">
+    <button class="display" id="color-display" type="button" 
+            role="button" 
+            tabindex="0"
+            aria-label="Click to copy color code">
       # <span id="hex-r">00</span> <span id="hex-g">00</span> <span id="hex-b">00</span>
-    </div>
+    </button>
 
-    <!-- Область с тремя колонками и селектором -->
     <div class="columns" id="columns-wrapper">
-      <!-- Горизонтальная линия через выбранные ячейки -->
-      <div class="highlight-line"></div>
-      <!-- Рамка вокруг центральной выбранной ячейки -->
       <div class="selector-frame"></div>
 
-      <div class="column" id="col-r">
-        <div class="spacer"></div>
-        <!-- Элементы заполняются через JS -->
-      </div>
-      <div class="column" id="col-g">
+      <div class="column" id="col-r" role="listbox" aria-label="Red channel">
         <div class="spacer"></div>
       </div>
-      <div class="column" id="col-b">
+      <div class="column" id="col-g" role="listbox" aria-label="Green channel">
+        <div class="spacer"></div>
+      </div>
+      <div class="column" id="col-b" role="listbox" aria-label="Blue channel">
         <div class="spacer"></div>
       </div>
     </div>
   </div>
 
+  <div class="toast" id="toast"></div>
+
   <script>
-    const hexValues = [
-    'FF', 'EE', 'DD', 'CC', 'BB', 'AA', '99', '88', '77', '66', '55', '44', '33', '22', '11', '00'
-    ];
-
-    const SPACER_HEIGHT = 170;
-    const ITEM_HEIGHT = 40;
-
-    let selected = { r: '00', g: '00', b: '00' };
-
-    const dragState = {
-    isDragging: false,
-    startY: 0,
-    scrollStart: 0,
-    column: null
+    const CONFIG = {
+      HEX_VALUES: ['FF', 'EE', 'DD', 'CC', 'BB', 'AA', '99', '88', '77', '66', '55', '44', '33', '22', '11', '00'],
+      SPACER_HEIGHT: 170,
+      ITEM_HEIGHT: 40,
+      SCROLL_DEBOUNCE: 16,
+      DEFAULT_COLOR: { r: '00', g: '00', b: '00' },
+      TOAST_DURATION: 2000
     };
 
+    let selected = { ...CONFIG.DEFAULT_COLOR };
+
+    const dragState = {
+      isDragging: false,
+      startY: 0,
+      scrollStart: 0,
+      column: null
+    };
+
+    function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, CONFIG.TOAST_DURATION);
+    }
+
+    function getColorForChannel(channel, value) {
+      switch (channel) {
+        case 'r': return `#${value}0000`;
+        case 'g': return `#00${value}00`;
+        case 'b': return `#0000${value}`;
+        default: return '#000000';
+      }
+    }
+
     function populateColumn(columnId, channel) {
-    const column = document.getElementById(columnId);
-    hexValues.forEach((val) => {
+      const column = document.getElementById(columnId);
+      
+      CONFIG.HEX_VALUES.forEach((val) => {
         const item = document.createElement('div');
         item.classList.add('column-item');
         item.textContent = val;
-        let bgColor;
-        switch (channel) {
-        case 'r':
-            bgColor = `#${val}0000`;
-            break;
-        case 'g':
-            bgColor = `#00${val}00`;
-            break;
-        case 'b':
-            bgColor = `#0000${val}`;
-            break;
-        }
-        item.style.backgroundColor = bgColor;
+        item.setAttribute('role', 'option');
+        item.setAttribute('data-value', val);
+        item.style.backgroundColor = getColorForChannel(channel, val);
         column.appendChild(item);
-    });
-    const bottomSpacer = document.createElement('div');
-    bottomSpacer.classList.add('spacer');
-    column.appendChild(bottomSpacer);
+      });
 
-    column.addEventListener('wheel', (e) => {
+      const bottomSpacer = document.createElement('div');
+      bottomSpacer.classList.add('spacer');
+      column.appendChild(bottomSpacer);
+
+      column.addEventListener('wheel', (e) => {
         e.preventDefault();
-        const delta = e.deltaY > 0 ? ITEM_HEIGHT : -ITEM_HEIGHT;
+        const delta = e.deltaY > 0 ? CONFIG.ITEM_HEIGHT : -CONFIG.ITEM_HEIGHT;
         column.scrollBy({ top: delta, left: 0, behavior: 'smooth' });
-    }, { passive: false });
+      }, { passive: false });
 
-    column.addEventListener('mousedown', (e) => {
-        dragState.isDragging = true;
-        dragState.startY = e.clientY;
-        dragState.scrollStart = column.scrollTop;
-        dragState.column = column;
-        column.classList.add('dragging');
-    });
-    document.addEventListener('mousemove', (e) => {
-        if (!dragState.isDragging || dragState.column !== column) return;
-        const dy = e.clientY - dragState.startY;
-        const newScroll = dragState.scrollStart - dy;
-        const snapped = Math.round(newScroll / ITEM_HEIGHT) * ITEM_HEIGHT;
-        dragState.column.scrollTop = snapped;
-    });
-    document.addEventListener('mouseup', () => {
-        if (!dragState.isDragging) return;
-        dragState.isDragging = false;
-        if (dragState.column) dragState.column.classList.remove('dragging');
-        dragState.column = null;
-    });
+      column.addEventListener('mousedown', handleMouseDown);
+      column.addEventListener('touchstart', handleTouchStart, { passive: true });
 
-    column.addEventListener('scroll', () => onScrollColumn(column, channel));
+      column.addEventListener('scroll', () => onScrollColumn(column, channel));
+    }
+
+    function handleMouseDown(e) {
+      dragState.isDragging = true;
+      dragState.startY = e.clientY;
+      dragState.scrollStart = this.scrollTop;
+      dragState.column = this;
+    }
+
+    function handleTouchStart(e) {
+      if (e.touches.length !== 1) return;
+      dragState.isDragging = true;
+      dragState.startY = e.touches[0].clientY;
+      dragState.scrollStart = this.scrollTop;
+      dragState.column = this;
+    }
+
+    function handleMouseMove(e) {
+      if (!dragState.isDragging || !dragState.column) return;
+      e.preventDefault();
+      
+      const dy = e.clientY - dragState.startY;
+      const newScroll = dragState.scrollStart - dy;
+      const snapped = Math.round(newScroll / CONFIG.ITEM_HEIGHT) * CONFIG.ITEM_HEIGHT;
+      dragState.column.scrollTop = snapped;
+    }
+
+    function handleTouchMove(e) {
+      if (!dragState.isDragging || !dragState.column || e.touches.length !== 1) return;
+      
+      const dy = e.touches[0].clientY - dragState.startY;
+      const newScroll = dragState.scrollStart - dy;
+      const snapped = Math.round(newScroll / CONFIG.ITEM_HEIGHT) * CONFIG.ITEM_HEIGHT;
+      dragState.column.scrollTop = snapped;
+    }
+
+    function handleEnd() {
+      if (!dragState.isDragging) return;
+      dragState.isDragging = false;
+      dragState.column = null;
     }
 
     function onScrollColumn(columnElem, channel) {
-    const rect = columnElem.getBoundingClientRect();
-    const centerY = rect.top + rect.height / 2;
-    const centerX = rect.left + rect.width / 2;
-    const elemAtCenter = document.elementFromPoint(centerX, centerY);
-    if (!elemAtCenter || !elemAtCenter.classList.contains('column-item')) return;
+      const rect = columnElem.getBoundingClientRect();
+      const centerY = rect.top + rect.height / 2;
+      const centerX = rect.left + rect.width / 2;
+      const elemAtCenter = document.elementFromPoint(centerX, centerY);
+      
+      if (!elemAtCenter || !elemAtCenter.classList.contains('column-item')) return;
 
-    columnElem.querySelectorAll('.column-item').forEach((el) => el.classList.remove('selected'));
-    elemAtCenter.classList.add('selected');
-    selected[channel] = elemAtCenter.textContent;
-    updateDisplay();
+      columnElem.querySelectorAll('.column-item').forEach((el) => {
+        el.classList.remove('selected');
+        el.setAttribute('aria-selected', 'false');
+      });
+      
+      elemAtCenter.classList.add('selected');
+      elemAtCenter.setAttribute('aria-selected', 'true');
+      selected[channel] = elemAtCenter.textContent;
+      updateDisplay();
     }
 
     function updateDisplay() {
-    document.getElementById('hex-r').textContent = selected.r;
-    document.getElementById('hex-g').textContent = selected.g;
-    document.getElementById('hex-b').textContent = selected.b;
-    const combined = `#${selected.r}${selected.g}${selected.b}`;
-    const display = document.getElementById('color-display');
+      document.getElementById('hex-r').textContent = selected.r;
+      document.getElementById('hex-g').textContent = selected.g;
+      document.getElementById('hex-b').textContent = selected.b;
+      
+      const combined = `#${selected.r}${selected.g}${selected.b}`;
+      document.body.style.backgroundColor = combined;
+    }
 
-    const colorBox = document.getElementById('color-box');
-    colorBox.style.backgroundColor = combined;
+    async function copyColor() {
+      const combined = `#${selected.r}${selected.g}${selected.b}`;
+      const display = document.getElementById('color-display');
+      
+      if (!navigator.clipboard) {
+        showToast('クリップボードがサポートされていません');
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(combined);
+        display.classList.add('copied');
+        showToast(`${combined} コピーしました！`);
+        
+        setTimeout(() => {
+          display.classList.remove('copied');
+        }, 300);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        showToast('コピーに失敗しました');
+      }
+    }
+
+    function initializeColumns() {
+      ['col-r', 'col-g', 'col-b'].forEach((id) => {
+        const col = document.getElementById(id);
+        const targetIndex = CONFIG.HEX_VALUES.length - 1;
+        const offsetTop = CONFIG.SPACER_HEIGHT + targetIndex * CONFIG.ITEM_HEIGHT;
+        const scrollPos = offsetTop - (col.clientHeight / 2 - CONFIG.ITEM_HEIGHT / 2);
+        col.scrollTop = scrollPos;
+        onScrollColumn(col, id.charAt(id.length - 1));
+      });
+    }
+
+    function cleanup() {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleEnd);
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-    populateColumn('col-r', 'r');
-    populateColumn('col-g', 'g');
-    populateColumn('col-b', 'b');
+      populateColumn('col-r', 'r');
+      populateColumn('col-g', 'g');
+      populateColumn('col-b', 'b');
 
-    ['col-r', 'col-g', 'col-b'].forEach((id) => {
-        const col = document.getElementById(id);
-        const targetIndex = hexValues.length - 1; // 15 for '00'
-        const offsetTop = SPACER_HEIGHT + targetIndex * ITEM_HEIGHT;
-        const scrollPos = offsetTop - (col.clientHeight / 2 - ITEM_HEIGHT / 2);
-        col.scrollTop = scrollPos;
-        onScrollColumn(col, id.charAt(id.length - 1));
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleEnd);
+      document.addEventListener('touchmove', handleTouchMove, { passive: true });
+      document.addEventListener('touchend', handleEnd);
+
+      initializeColumns();
+
+      const displayBtn = document.getElementById('color-display');
+      displayBtn.addEventListener('click', copyColor);
+      displayBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          copyColor();
+        }
+      });
     });
 
-    document.getElementById('color-display').addEventListener('click', () => {
-    const combined = `#${selected.r}${selected.g}${selected.b}`;
-    navigator.clipboard.writeText(combined).then(() => {
-        alert(`${combined} コピーしました！`);
-        }).catch(() => {
-        alert('コピーに失敗しました');
-        });
-        });
-    });
+    window.addEventListener('beforeunload', cleanup);
   </script>
-
 </body>
 
 </html>
