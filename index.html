@@ -152,18 +152,20 @@
 
     .toast {
       position: fixed;
-      bottom: 30px;
+      top: 20px;
       left: 50%;
-      transform: translateX(-50%) translateY(100px);
+      transform: translateX(-50%) translateY(-100px);
       background-color: rgba(0, 0, 0, 0.8);
       color: white;
       padding: 12px 24px;
-      border-radius: 24px;
+      border-radius: 12px;
       font-size: 0.9rem;
       opacity: 0;
       transition: all var(--transition-speed) ease;
       z-index: 1000;
       pointer-events: none;
+      text-align: center;
+      line-height: 1.5;
     }
 
     .toast.show {
@@ -244,9 +246,13 @@
       };
     }
 
-    function showToast(message) {
+    function showToast(message, color) {
       const toast = document.getElementById('toast');
-      toast.textContent = message;
+      if (color) {
+        toast.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem;">${color}</div><div style="margin-top: 4px;">${message}</div>`;
+      } else {
+        toast.textContent = message;
+      }
       toast.classList.add('show');
       
       setTimeout(() => {
@@ -372,7 +378,7 @@
       try {
         await navigator.clipboard.writeText(combined);
         display.classList.add('copied');
-        showToast(`${combined} コピーしました！`);
+        showToast('コピーしました！', combined);
         
         setTimeout(() => {
           display.classList.remove('copied');
